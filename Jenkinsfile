@@ -14,12 +14,25 @@ pipeline {
             }
         }
 
+        stage('Remove old container') {
+            steps {
+                sh 'docker stop flask-app || true'
+                sh 'docker rm flask-app || true'
+            }
+        }
+
         stage('Run container') {
-    steps {
-        sh 'docker stop flask-app || true'
-        sh 'docker rm flask-app || true'
-        sh 'docker run -d -p 5050:5000 --name flask-app devops-app'
+            steps {
+                sh 'docker run -d -p 5001:5000 --name flask-app devops-app'
+                sh 'docker ps -a'
+                sh 'docker logs flask-app || true'
+            }
+        }
     }
-}
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
     }
 }
