@@ -10,15 +10,13 @@ pipeline {
 
         stage('Build Docker image') {
             steps {
-                script {
-                    docker.build('devops-app')
-                }
+                sh 'docker build -t devops-app .'
             }
         }
 
         stage('Run container') {
             steps {
-                sh 'docker run -d -p 5000:5000 devops-app'
+                sh 'docker run -d -p 5000:5000 --name devops-app-container devops-app'
             }
         }
     }
