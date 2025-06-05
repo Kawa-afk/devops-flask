@@ -12,6 +12,19 @@ pipeline {
             }
         }
 
+        stage('Code Quality Check') {
+            steps {
+                echo "Running static code analysis with flake8"
+                sh '''
+                    docker run --rm \
+                        -v $PWD:/app \
+                        -w /app \
+                        python:3.10-slim \
+                        bash -c "pip install flake8 && flake8 app.py"
+                '''
+            }
+        }
+
         stage('Docker Compose - Down') {
             steps {
                 sh 'docker-compose down || true'
