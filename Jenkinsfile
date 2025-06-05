@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                echo 'Cloning repository...'
+                echo "Repo already checked out"
             }
         }
 
@@ -16,7 +16,9 @@ pipeline {
 
         stage('Run container') {
             steps {
-                sh 'docker run -d -p 5000:5000 --name devops-app-container devops-app'
+                sh 'docker stop flask-app || true'
+                sh 'docker rm flask-app || true'
+                sh 'docker run -d -p 5000:5000 --name flask-app devops-app'
             }
         }
     }
