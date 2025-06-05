@@ -8,24 +8,27 @@ pipeline {
             }
         }
 
-        stage('Build Docker image') {
+        stage('Docker Compose - Down') {
             steps {
-                sh 'docker build -t devops-app .'
+                sh 'docker compose down || true'
             }
         }
 
-        stage('Remove old container') {
+        stage('Docker Compose - Build and Up') {
             steps {
-                sh 'docker stop flask-app || true'
-                sh 'docker rm flask-app || true'
+                sh 'docker compose up -d --build'
             }
         }
 
-        stage('Run container') {
+        stage('Check Running Containers') {
             steps {
-                sh 'docker run -d -p 5001:5000 --name flask-app devops-app'
                 sh 'docker ps -a'
-                sh 'docker logs flask-app || true'
+            }
+        }
+
+        stage('Logs') {
+            steps {
+                sh 'docker logs $(docker ps -qf "name=web") || true'
             }
         }
     }
