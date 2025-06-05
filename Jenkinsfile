@@ -17,7 +17,7 @@ pipeline {
         echo "Running static code analysis with flake8"
         sh '''
             docker run --rm \
-                -v "$PWD":/app \
+                -v "${WORKSPACE}:/app" \
                 -w /app \
                 python:3.10-slim \
                 bash -c 'pip install flake8 && flake8 app.py'
