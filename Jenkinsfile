@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
     stages {
         stage('Clone') {
             steps {
@@ -16,7 +20,8 @@ pipeline {
 
         stage('Docker Compose - Build and Up') {
             steps {
-                sh 'docker-compose up -d --build'
+                sh 'docker-compose build --build-arg IMAGE_TAG=${IMAGE_TAG}'
+                sh 'docker-compose up -d'
             }
         }
 
