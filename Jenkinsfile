@@ -13,14 +13,14 @@ pipeline {
         }
 
         stage('Code Quality Check') {
-    steps {
-        echo "Running static code analysis with flake8"
-        sh '''
-            docker run --rm \
-                -v "${WORKSPACE}:/app" \
-                -w /app \
-                python:3.10-slim \
-                bash -c 'pip install flake8 && flake8 app.py'
+            steps {
+                echo "Running static code analysis with flake8"
+                sh '''
+                    docker run --rm \
+                        -v "$WORKSPACE:/app" \
+                        -w /app \
+                        python:3.10-slim \
+                        bash -c "pip install flake8 && flake8 ."
                 '''
             }
         }
