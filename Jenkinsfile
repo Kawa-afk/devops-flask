@@ -15,11 +15,11 @@ pipeline {
         }
 
         stage('Run container') {
-            steps {
-                sh 'docker stop flask-app || true'
-                sh 'docker rm flask-app || true'
-                sh 'docker run -d -p 5000:5000 --name flask-app devops-app'
-            }
-        }
+    steps {
+        sh 'docker stop flask-app || true'
+        sh 'docker rm flask-app || true'
+        sh 'docker run -d -p 5050:5000 --name flask-app devops-app'
+    }
+}
     }
 }
