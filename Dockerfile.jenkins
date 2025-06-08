@@ -1,0 +1,14 @@
+FROM jenkins/jenkins:lts
+
+USER root
+
+# Instalacja Dockera i Gita
+RUN apt-get update && \
+    apt-get install -y git docker.io && \
+    apt-get clean
+
+# Zainstaluj wtyczki Jenkinsa (w tym Pipeline)
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
+USER jenkins

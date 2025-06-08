@@ -22,7 +22,9 @@ services:
 
   jenkins:
     container_name: devops-jenkins
-    image: jenkins/jenkins:lts
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
     user: root
     ports:
       - "8080:8080"
@@ -33,11 +35,3 @@ services:
     restart: unless-stopped
     environment:
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
-    init: true
-    command: >
-      bash -c "apt-get update &&
-               apt-get install -y git &&
-               /usr/bin/tini -- /usr/local/bin/jenkins.sh"
-
-volumes:
-  jenkins_home:
