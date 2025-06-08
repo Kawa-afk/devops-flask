@@ -2,12 +2,18 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Instalacja Dockera i Gita
+# Instalacja Git, Docker CLI i Docker Compose
 RUN apt-get update && \
-    apt-get install -y git docker.io && \
+    apt-get install -y git curl docker.io && \
+    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
+    chmod +x /usr/local/bin/docker-compose && \
+    ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose && \
     apt-get clean
 
-# Zainstaluj wtyczki Jenkinsa (w tym Pipeline)
+# Upewnij się, że użytkownik Jenkins może korzystać z Dockera
+RUN usermod -aG docker jenkins
+
+# Zainstaluj pluginy Jenkinsa z pliku
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
 
