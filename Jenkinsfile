@@ -13,6 +13,22 @@ pipeline {
             }
         }
 
+        stage('Versioning') {
+            steps {
+                script {
+                    def version = "v${BUILD_NUMBER}"
+                    writeFile file: 'version.txt', text: version
+                    sh 'git config user.name "jenkins"'
+                    sh 'git config user.email "jenkins@localhost"'
+                    sh 'git add version.txt'
+                    sh 'git commit -m "Add version ${version}" || echo "No changes to commit"'
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Kawa-afk/devops-flask.git HEAD:main || echo "Push skipped"'
+                    }
+                }
+            }
+        }
+
         stage('Code Quality Check') {
             steps {
                 echo "Running static code analysis with flake8"
@@ -54,22 +70,21 @@ pipeline {
 
     post {
         success {
-    sh """
-        curl -H "Content-Type: application/json" \
-             -X POST \
-             -d '{"username": "Jenkins", "content": "✅ Pipeline zakończony **sukcesem** (Build #${BUILD_NUMBER})"}' \
-             $DISCORD_WEBHOOK
-    """
-}
-failure {
-    sh """
-        curl -H "Content-Type: application/json" \
-             -X POST \
-             -d '{"username": "Jenkins", "content": "❌ Pipeline **nie powiódł się** (Build #${BUILD_NUMBER})"}' \
-             $DISCORD_WEBHOOK
-    """
-}
-
+            sh """
+                curl -H "Content-Type: application/json" \\
+                     -X POST \\
+                     -d '{"username": "Jenkins", "content": "✅ Pipeline zakończony **sukcesem** (Build #${BUILD_NUMBER})"}' \\
+                     $DISCORD_WEBHOOK
+            """
+        }
+        failure {
+            sh """
+                curl -H "Content-Type: application/json" \\
+                     -X POST \\
+                     -d '{"username": "Jenkins", "content": "❌ Pipeline **nie powiódł się** (Build #${BUILD_NUMBER})"}' \\
+                     $DISCORD_WEBHOOK
+            """
+        }
         always {
             echo 'Pipeline finished.'
         }
