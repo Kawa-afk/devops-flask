@@ -15,10 +15,11 @@ services:
     environment:
       - REDIS_HOST=redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:5000/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+    test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+    interval: 10s
+    timeout: 5s
+    start_period: 15s
+    retries: 5
 
   redis:
     image: redis:7-alpine
