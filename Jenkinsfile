@@ -54,21 +54,22 @@ pipeline {
 
     post {
         success {
-            sh '''
-                curl -H "Content-Type: application/json" \
-                     -X POST \
-                     -d '{"username": "Jenkins", "content": "✅ Pipeline zakończony **sukcesem** (Build #${BUILD_NUMBER})"}' \
-                     $DISCORD_WEBHOOK
-            '''
-        }
-        failure {
-            sh '''
-                curl -H "Content-Type: application/json" \
-                     -X POST \
-                     -d '{"username": "Jenkins", "content": "❌ Pipeline **nie powiódł się** (Build #${BUILD_NUMBER})"}' \
-                     $DISCORD_WEBHOOK
-            '''
-        }
+    sh """
+        curl -H "Content-Type: application/json" \
+             -X POST \
+             -d '{"username": "Jenkins", "content": "✅ Pipeline zakończony **sukcesem** (Build #${BUILD_NUMBER})"}' \
+             $DISCORD_WEBHOOK
+    """
+}
+failure {
+    sh """
+        curl -H "Content-Type: application/json" \
+             -X POST \
+             -d '{"username": "Jenkins", "content": "❌ Pipeline **nie powiódł się** (Build #${BUILD_NUMBER})"}' \
+             $DISCORD_WEBHOOK
+    """
+}
+
         always {
             echo 'Pipeline finished.'
         }
