@@ -11,5 +11,13 @@ def hello():
     count = cache.incr('hits')
     return f'Hello from DevOps! I have been seen {count} times.'
 
+@app.route('/health')
+def health():
+    try:
+        cache.ping()
+        return "OK", 200
+    except redis.exceptions.ConnectionError:
+        return "Redis Unreachable", 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

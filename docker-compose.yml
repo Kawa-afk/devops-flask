@@ -15,9 +15,9 @@ services:
     environment:
       - REDIS_HOST=redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:5000/health"]
       interval: 10s
-      timeout: 5s
+      timeout: 3s
       retries: 3
 
   redis:
