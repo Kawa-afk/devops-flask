@@ -8,7 +8,10 @@ cache = redis.Redis(host=redis_host, port=6379)
 
 @app.route('/')
 def hello():
-    count = cache.incr('hits')
+    try:
+        count = cache.incr('hits')
+    except redis.exceptions.RedisError:
+        count = 'unavailable'
     return f'Hello from DevOps! I have been seen {count} times.'
 
 @app.route('/health')

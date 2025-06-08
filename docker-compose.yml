@@ -7,13 +7,13 @@ services:
         IMAGE_TAG: ${IMAGE_TAG}
     image: devops-app:${IMAGE_TAG}
     ports:
-      - "5002:5000"
+      - "5000:5000"
     depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:5000/health || exit 1"]
       interval: 10s
       timeout: 5s
       start_period: 30s
