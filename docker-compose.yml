@@ -35,3 +35,6 @@ services:
     restart: unless-stopped
     environment:
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+
+volumes:
+  jenkins_home:
