@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_TAG = "${BUILD_NUMBER}"
+        DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1381349097583280148/La4R4y_MRvm7Lp3QK2M1O7fgzrlF2C6fjQjI5kM9tOrlJpmj7yMzt_rcUJoizhJeKcmo'
     }
 
     stages {
@@ -34,7 +35,6 @@ pipeline {
         stage('Docker Compose - Build and Up') {
             steps {
                 sh 'docker-compose build --build-arg IMAGE_TAG=${IMAGE_TAG}'
-                // Uruchamiamy tylko web i redis, bez jenkinsa
                 sh 'docker-compose up -d web redis'
             }
         }
@@ -53,6 +53,22 @@ pipeline {
     }
 
     post {
+        success {
+            sh '''
+                curl -H "Content-Type: application/json" \
+                     -X POST \
+                     -d '{"username": "Jenkins", "content": "✅ Pipeline zakończony **sukcesem** (Build #${BUILD_NUMBER})"}' \
+                     $DISCORD_WEBHOOK
+            '''
+        }
+        failure {
+            sh '''
+                curl -H "Content-Type: application/json" \
+                     -X POST \
+                     -d '{"username": "Jenkins", "content": "❌ Pipeline **nie powiódł się** (Build #${BUILD_NUMBER})"}' \
+                     $DISCORD_WEBHOOK
+            '''
+        }
         always {
             echo 'Pipeline finished.'
         }
