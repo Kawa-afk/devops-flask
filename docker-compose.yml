@@ -16,9 +16,9 @@ services:
       - REDIS_HOST=redis
 
   redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
+  image: redis:7-alpine
+  ports:
+    - "6380:6379"
 
   jenkins:
     container_name: devops-jenkins
