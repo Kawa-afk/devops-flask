@@ -2,18 +2,19 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Instalacja Git, Docker CLI i Docker Compose
+# Instalacja Git, Docker CLI, Docker Compose i Ansible
 RUN apt-get update && \
-    apt-get install -y git curl docker.io && \
+    apt-get install -y git curl docker.io python3 python3-pip && \
+    pip3 install ansible && \
     curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
     chmod +x /usr/local/bin/docker-compose && \
     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose && \
     apt-get clean
 
-# Upewnij się, że użytkownik Jenkins może korzystać z Dockera
+# Umożliwienie Jenkinsowi dostępu do Dockera
 RUN usermod -aG docker jenkins
 
-# Zainstaluj pluginy Jenkinsa z pliku
+# Pluginy Jenkinsa
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
 
