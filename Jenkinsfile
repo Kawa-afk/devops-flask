@@ -34,7 +34,8 @@ pipeline {
         stage('Docker Compose - Build and Up') {
             steps {
                 sh 'docker-compose build --build-arg IMAGE_TAG=${IMAGE_TAG}'
-                sh 'docker-compose up -d'
+                // Uruchamiamy tylko web i redis, bez jenkinsa
+                sh 'docker-compose up -d web redis'
             }
         }
 
