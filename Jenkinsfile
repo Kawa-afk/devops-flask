@@ -55,19 +55,32 @@ pipeline {
         }
 
         stage('Health Check & Rollback') {
-            steps {
-                script {
-                    def isUp = sh(script: 'docker inspect -f "{{.State.Health.Status}}" $(docker ps -qf "name=web")', returnStdout: true).trim()
-                    if (isUp != "healthy") {
-                        echo "Container is not healthy. Performing rollback..."
-                        sh 'docker-compose down || true'
-                        error("Deployment failed. Rollback executed.")
-                    } else {
-                        echo "Container is healthy."
-                    }
+    steps {
+        script {
+            def containerId = sh(script: 'docker ps -qf "name=web"', returnStdout: true).trim()
+            def maxRetries = 12
+            def isHealthy = false
+
+            for (int i = 0; i < maxRetries; i++) {
+                def status = sh(script: "docker inspect -f '{{.State.Health.Status}}' ${containerId}", returnStdout: true).trim()
+                if (status == 'healthy') {
+                    echo "Container is healthy ✅"
+                    isHealthy = true
+                    break
                 }
+                echo "Waiting for container to become healthy... (${i + 1}/${maxRetries})"
+                sleep(time: 5, unit: 'SECONDS')
+            }
+
+            if (!isHealthy) {
+                echo 'Container did not become healthy in time. Performing rollback...'
+                sh 'docker-compose down'
+                error('Deployment failed. Rollback executed.')
             }
         }
+    }
+}
+
 
         stage('Check Running Containers') {
             steps {
