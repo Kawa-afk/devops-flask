@@ -14,20 +14,20 @@ pipeline {
         }
 
         stage('Versioning') {
-    steps {
-        script {
-            def version = "v${BUILD_NUMBER}"
-            writeFile file: 'version.txt', text: version
-            sh 'git config user.name "jenkins"'
-            sh 'git config user.email "jenkins@localhost"'
-            sh 'git add version.txt'
-            sh 'git commit -m "Add version ${version}" || echo "No changes to commit"'
-            withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Kawa-afk/devops-flask.git HEAD:main || echo "Push skipped"'
+            steps {
+                script {
+                    def version = "v${BUILD_NUMBER}"
+                    writeFile file: 'version.txt', text: version
+                    sh 'git config user.name "jenkins"'
+                    sh 'git config user.email "jenkins@localhost"'
+                    sh 'git add version.txt'
+                    sh 'git commit -m "Add version ${version}" || echo "No changes to commit"'
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Kawa-afk/devops-flask.git HEAD:main || echo "Push skipped"'
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Code Quality Check') {
             steps {
@@ -56,30 +56,39 @@ pipeline {
         }
 
         stage('Health Check & Rollback') {
-    steps {
-        script {
-            def containerId = sh(script: "docker ps -qf 'name=web'", returnStdout: true).trim()
-            def status = ''
+            steps {
+                script {
+                    def containerId = sh(
+                        script: "docker ps -q --filter 'name=web' --format '{{.ID}}' | head -n 1",
+                        returnStdout: true
+                    ).trim()
 
-            // Czekaj maks 30 sekund na zdrowie kontenera
-            for (int i = 0; i < 15; i++) {
-                status = sh(script: "docker inspect -f '{{.State.Health.Status}}' ${containerId}", returnStdout: true).trim()
-                if (status == "healthy") {
-                    echo "Container is healthy."
-                    break
+                    if (!containerId) {
+                        error("❌ Nie znaleziono kontenera aplikacji.")
+                    }
+
+                    def status = ""
+                    for (int i = 0; i < 15; i++) {
+                        status = sh(
+                            script: "docker inspect -f '{{.State.Health.Status}}' ${containerId}",
+                            returnStdout: true
+                        ).trim()
+                        if (status == "healthy") {
+                            echo "✅ Container is healthy."
+                            break
+                        }
+                        echo "⏳ Waiting for container to become healthy... (${i + 1}/15)"
+                        sleep 2
+                    }
+
+                    if (status != "healthy") {
+                        echo "❌ Container is not healthy. Performing rollback..."
+                        sh 'docker-compose down'
+                        error("Deployment failed. Rollback executed.")
+                    }
                 }
-                echo "Waiting for container to become healthy... (${i + 1}/15)"
-                sleep 2
-            }
-
-            if (status != "healthy") {
-                echo "Container is not healthy. Performing rollback..."
-                sh 'docker-compose down'
-                error("Deployment failed. Rollback executed.")
             }
         }
-    }
-}
 
         stage('Check Running Containers') {
             steps {
@@ -92,8 +101,6 @@ pipeline {
                 sh 'docker logs $(docker ps -qf "name=web") || true'
             }
         }
-
-        
     }
 
     post {
