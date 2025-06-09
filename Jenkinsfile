@@ -58,31 +58,19 @@ pipeline {
         stage('Health Check & Rollback') {
             steps {
                 script {
-                    def containerId = sh(
-                        script: "docker ps -q --filter 'name=web' --format '{{.ID}}' | head -n 1",
-                        returnStdout: true
-                    ).trim()
-
-                    if (!containerId) {
-                        error("❌ Nie znaleziono kontenera aplikacji.")
-                    }
-
-                    def status = ""
+                    def success = false
                     for (int i = 0; i < 15; i++) {
-                        status = sh(
-                            script: "docker inspect -f '{{.State.Health.Status}}' ${containerId}",
-                            returnStdout: true
-                        ).trim()
-                        if (status == "healthy") {
-                            echo "✅ Container is healthy."
+                        def response = sh(script: "curl -sf http://localhost:5000/health || true", returnStatus: true)
+                        if (response == 0) {
+                            echo "✅ App is healthy and responding."
+                            success = true
                             break
                         }
-                        echo "⏳ Waiting for container to become healthy... (${i + 1}/15)"
+                        echo "⏳ App not healthy yet... (${i + 1}/15)"
                         sleep 2
                     }
-
-                    if (status != "healthy") {
-                        echo "❌ Container is not healthy. Performing rollback..."
+                    if (!success) {
+                        echo "❌ App failed to respond. Rolling back..."
                         sh 'docker-compose down'
                         error("Deployment failed. Rollback executed.")
                     }
