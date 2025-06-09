@@ -93,12 +93,7 @@ pipeline {
             }
         }
 
-        stage('Ansible IaC') {
-            steps {
-                echo 'Running Ansible playbook...'
-                sh 'ansible-playbook -i ansible/inventory ansible/playbook.yml'
-            }
-        }
+        
     }
 
     post {
