@@ -56,31 +56,30 @@ pipeline {
         }
 
         stage('Health Check & Rollback') {
-            steps {
-                script {
-                    def containerId = sh(script: 'docker ps -qf "name=web"', returnStdout: true).trim()
-                    def maxRetries = 12
-                    def isHealthy = false
+    steps {
+        script {
+            def containerId = sh(script: "docker ps -qf 'name=web'", returnStdout: true).trim()
+            def status = ''
 
-                    for (int i = 0; i < maxRetries; i++) {
-                        def status = sh(script: "docker inspect -f '{{.State.Health.Status}}' ${containerId}", returnStdout: true).trim()
-                        if (status == 'healthy') {
-                            echo "Container is healthy ✅"
-                            isHealthy = true
-                            break
-                        }
-                        echo "Waiting for container to become healthy... (${i + 1}/${maxRetries})"
-                        sleep(time: 5, unit: 'SECONDS')
-                    }
-
-                    if (!isHealthy) {
-                        echo 'Container did not become healthy in time. Performing rollback...'
-                        sh 'docker-compose down'
-                        error('Deployment failed. Rollback executed.')
-                    }
+            // Czekaj maks 30 sekund na zdrowie kontenera
+            for (int i = 0; i < 15; i++) {
+                status = sh(script: "docker inspect -f '{{.State.Health.Status}}' ${containerId}", returnStdout: true).trim()
+                if (status == "healthy") {
+                    echo "Container is healthy."
+                    break
                 }
+                echo "Waiting for container to become healthy... (${i + 1}/15)"
+                sleep 2
+            }
+
+            if (status != "healthy") {
+                echo "Container is not healthy. Performing rollback..."
+                sh 'docker-compose down'
+                error("Deployment failed. Rollback executed.")
             }
         }
+    }
+}
 
         stage('Check Running Containers') {
             steps {
