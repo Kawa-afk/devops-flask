@@ -14,20 +14,20 @@ pipeline {
         }
 
         stage('Versioning') {
-            steps {
-                script {
-                    def version = "v${BUILD_NUMBER}"
-                    writeFile file: 'version.txt', text: version
-                    sh 'git config user.name "jenkins"'
-                    sh 'git config user.email "jenkins@localhost"'Add commentMore actions
-                    sh 'git add version.txt'
-                    sh 'git commit -m "Add version ${version}" || echo "No changes to commit"'
-                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Kawa-afk/devops-flask.git HEAD:main || echo "Push skipped"'
-                    }
-                }
+    steps {
+        script {
+            def version = "v${BUILD_NUMBER}"
+            writeFile file: 'version.txt', text: version
+            sh 'git config user.name "jenkins"'
+            sh 'git config user.email "jenkins@localhost"'
+            sh 'git add version.txt'
+            sh 'git commit -m "Add version ${version}" || echo "No changes to commit"'
+            withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Kawa-afk/devops-flask.git HEAD:main || echo "Push skipped"'
             }
         }
+    }
+}
 
         stage('Code Quality Check') {
             steps {
