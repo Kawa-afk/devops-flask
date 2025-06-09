@@ -14,6 +14,10 @@ def hello():
         count = 'unavailable'
     return f'Hello from DevOps! I have been seen {count} times.'
 
+    @app.route('/version')
+def version():
+    return f"Version: {os.getenv('APP_VERSION', 'unknown')}"
+
 @app.route('/health')
 def health():
     return 'OK', 200
